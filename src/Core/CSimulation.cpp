@@ -1,21 +1,20 @@
 #include "Core/CSimulation.hpp"
 
-// Constructeur de la simulation
+// Au lancement, on est dehors
 CSimulation::CSimulation()
-    : m_beehive()
+: m_currentView(EWindowType::OUTSIDE)
 {
-    // Pour l'instant, aucune entité n'est ajoutée
-    // La structure est prête pour évoluer
 }
 
-void CSimulation::update(float /*dt*/)
+EWindowType CSimulation::getCurrentView() const
 {
-    // La logique de simulation sera ajoutée plus tard
-    // Pour l'instant, cette méthode existe pour respecter l'architecture
+    return m_currentView;
 }
 
-void CSimulation::draw(sf::RenderWindow& /*hiveWindow*/,
-                       sf::RenderWindow& /*outsideWindow*/)
+void CSimulation::switchView()
 {
-    // Le rendu des entités sera implémenté plus tard
+    if (m_currentView == EWindowType::OUTSIDE)
+        m_currentView = EWindowType::BEEHIVE;
+    else
+        m_currentView = EWindowType::OUTSIDE;
 }
