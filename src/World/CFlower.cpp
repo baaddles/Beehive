@@ -5,6 +5,7 @@
 CFlower::CFlower(sf::Vector2f pos)
     : CEntity(pos, EWindowType::OUTSIDE), 
       m_isAvailable(true), 
+      m_isReserved(false),
       m_regenTimer(0.f),
       m_pollenValue(constants::POLLEN_PER_FLOWER)
 {
@@ -14,33 +15,32 @@ CFlower::CFlower(sf::Vector2f pos)
     m_sprite.setPosition(m_position);
 }
 
-void CFlower::update(float dt)
-{
+void CFlower::update(float dt) {
     if (!m_isAvailable) {
         m_regenTimer -= dt;
         if (m_regenTimer <= 0.f) {
             m_isAvailable = true;
+            m_isReserved = false;
         }
     }
 }
 
-void CFlower::draw(sf::RenderWindow& window) const
-{
+void CFlower::draw(sf::RenderWindow& window) const {
     if (m_isAvailable) {
         window.draw(m_sprite);
     }
 }
 
-bool CFlower::isAvailable() const {
-    return m_isAvailable;
+bool CFlower::isAvailable() const { 
+    return m_isAvailable && !m_isReserved; 
 }
 
 int CFlower::collect() {
     m_isAvailable = false;
+    m_isReserved = false;
     m_regenTimer = constants::FLOWER_REGEN_TIME;
     return m_pollenValue;
 }
 
-sf::FloatRect CFlower::getBounds() const {
-    return m_sprite.getGlobalBounds();
-}
+sf::FloatRect CFlower::getBounds() const { return m_sprite.getGlobalBounds(); }
+sf::Vector2f CFlower::getPosition() const { return m_position; }

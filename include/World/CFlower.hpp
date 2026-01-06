@@ -6,6 +6,7 @@ class CFlower : public CEntity
 private:
     sf::Sprite m_sprite;
     bool m_isAvailable;
+    bool m_isReserved; // Pour l'exclusivité
     float m_regenTimer;
     int m_pollenValue;
 
@@ -16,6 +17,9 @@ public:
     void draw(sf::RenderWindow& window) const override;
 
     bool isAvailable() const;
-    int collect(); // Retourne le pollen et lance la régénération
+    void setReserved(bool reserved) { m_isReserved = reserved; }
+    
+    int collect();
     sf::FloatRect getBounds() const;
+    sf::Vector2f getPosition() const;
 };

@@ -26,6 +26,9 @@ private:
 
     sf::Sprite m_outsideBackground;
     sf::Sprite m_insideBackground;
+    
+    // Rectangle pour le sol vert
+    sf::RectangleShape m_grassRect;
 
     std::vector<std::unique_ptr<CBee>> m_entities;
     std::vector<std::unique_ptr<CFlower>> m_flowers;

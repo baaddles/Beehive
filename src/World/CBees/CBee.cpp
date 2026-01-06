@@ -44,16 +44,16 @@ sf::FloatRect CBee::getBounds() const
 void CBee::keepInsideWindow(const sf::Vector2u& windowSize)
 {
     sf::FloatRect bounds = m_sprite.getGlobalBounds();
-    float halfWidth = bounds.width / 2.f;
     float halfHeight = bounds.height / 2.f;
+    float halfWidth = bounds.width / 2.f;
 
-    if (m_position.x < halfWidth) m_position.x = halfWidth;
+    // --- CORRECTION : On ne bloque plus les X pour permettre la transition ---
+    // On bloque uniquement le HAUT et le BAS
     if (m_position.y < halfHeight) m_position.y = halfHeight;
-    
-    if (m_position.x > windowSize.x - halfWidth)
-        m_position.x = windowSize.x - halfWidth;
-    if (m_position.y > windowSize.y - halfHeight)
-        m_position.y = windowSize.y - halfHeight;
+    if (m_position.y > windowSize.y - halfHeight) m_position.y = windowSize.y - halfHeight;
 
+    // Optionnel : On peut bloquer les X seulement si l'abeille n'est pas en train de transitionner
+    // Mais pour ta logique, laisser les X libres est plus simple.
+    
     m_sprite.setPosition(m_position);
 }
