@@ -9,15 +9,19 @@ CTextureManager& CTextureManager::instance()
 
 CTextureManager::CTextureManager()
 {
+    // On s'assure d'avoir une texture par défaut
     loadTexture("default.png");
 }
 
 void CTextureManager::loadTexture(const std::string& name)
 {
     sf::Texture texture;
-    if (!texture.loadFromFile(m_basePath + name))
+    std::string fullPath = m_basePath + name;
+    
+    if (!texture.loadFromFile(fullPath))
     {
-        std::cerr << "Erreur chargement texture : " << name << std::endl;
+        std::cerr << "Erreur : Impossible de trouver la texture : " << fullPath << std::endl;
+        std::cerr << "Verifiez que le dossier assets est bien a la racine du projet." << std::endl;
         return;
     }
     m_textures[name] = texture;
@@ -29,20 +33,11 @@ const sf::Texture& CTextureManager::getTexture(const std::string& name)
     if (it != m_textures.end())
         return it->second;
 
-    // tentative de chargement
     loadTexture(name);
 
     it = m_textures.find(name);
     if (it != m_textures.end())
         return it->second;
 
-    // fallback sécurisé
-    auto def = m_textures.find("default.png");
-    if (def != m_textures.end())
-        return def->second;
-
-    // dernier recours ABSOLU (ne devrait jamais arriver)
-    static sf::Texture empty;
-    return empty;
+    return m_textures["default.png"];
 }
-
