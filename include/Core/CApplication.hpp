@@ -6,6 +6,7 @@
 #include "World/CBees/CWorkerBee.hpp"
 #include "World/CBees/CQueenBee.hpp"
 #include "World/CBees/CWarriorBee.hpp"
+#include "World/CFlower.hpp"
 #include "Graphics/CTextureManager.hpp"
 
 class CApplication
@@ -26,6 +27,6 @@ private:
     sf::Sprite m_outsideBackground;
     sf::Sprite m_insideBackground;
 
-    // Vecteur polymorphique pour toutes les abeilles
     std::vector<std::unique_ptr<CBee>> m_entities;
+    std::vector<std::unique_ptr<CFlower>> m_flowers;
 };

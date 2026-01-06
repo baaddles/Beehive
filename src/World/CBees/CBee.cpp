@@ -3,9 +3,10 @@
 CBee::CBee(sf::Vector2f pos, EWindowType win, float speed)
     : m_position(pos), m_windowType(win), m_speed(speed)
 {
-    m_sprite.setTexture(
-        CTextureManager::instance().getTexture("default.png")
-    );
+    m_sprite.setTexture(CTextureManager::instance().getTexture("default.png"), true);
+    
+    sf::FloatRect bounds = m_sprite.getLocalBounds();
+    m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     m_sprite.setPosition(m_position);
 }
 
@@ -35,14 +36,24 @@ EWindowType CBee::getWindowType() const
     return m_windowType;
 }
 
+sf::FloatRect CBee::getBounds() const
+{
+    return m_sprite.getGlobalBounds();
+}
+
 void CBee::keepInsideWindow(const sf::Vector2u& windowSize)
 {
-    if (m_position.x < 0) m_position.x = 0;
-    if (m_position.y < 0) m_position.y = 0;
-    if (m_position.x > windowSize.x - m_sprite.getGlobalBounds().width)
-        m_position.x = windowSize.x - m_sprite.getGlobalBounds().width;
-    if (m_position.y > windowSize.y - m_sprite.getGlobalBounds().height)
-        m_position.y = windowSize.y - m_sprite.getGlobalBounds().height;
+    sf::FloatRect bounds = m_sprite.getGlobalBounds();
+    float halfWidth = bounds.width / 2.f;
+    float halfHeight = bounds.height / 2.f;
+
+    if (m_position.x < halfWidth) m_position.x = halfWidth;
+    if (m_position.y < halfHeight) m_position.y = halfHeight;
+    
+    if (m_position.x > windowSize.x - halfWidth)
+        m_position.x = windowSize.x - halfWidth;
+    if (m_position.y > windowSize.y - halfHeight)
+        m_position.y = windowSize.y - halfHeight;
 
     m_sprite.setPosition(m_position);
 }

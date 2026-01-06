@@ -1,54 +1,55 @@
 #include "World/CBees/CWorkerBee.hpp"
+#include "Utils/CConstants.hpp"
 #include <cstdlib>
 #include <cmath>
 
 CWorkerBee::CWorkerBee(sf::Vector2f pos, EWindowType winType)
-    : CBee(pos, winType, 80.f), m_hasPollen(false)
+    : CBee(pos, winType, 100.f), 
+      m_pollenCollected(0), 
+      m_capacity(constants::WORKER_CAPACITY)
 {
-    m_sprite.setTexture(CTextureManager::instance().getTexture("worker_bee.png"));
+    m_sprite.setTexture(CTextureManager::instance().getTexture("worker_bee.png"), true);
+    sf::FloatRect bounds = m_sprite.getLocalBounds();
+    m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
 }
 
 void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
 {
-    sf::Vector2f pos = getPosition();
-    
-    // Logique de mouvement : "Wander" (errance aléatoire)
+    // Errance aléatoire
     static float timer = 0;
     static sf::Vector2f dir(1.f, 0.f);
     timer += dt;
-    
-    if (timer > 0.5f) { // Change de direction toutes les 0.5s
+    if (timer > 0.8f) {
         float angle = (std::rand() % 360) * 3.14159f / 180.f;
         dir = sf::Vector2f(std::cos(angle), std::sin(angle));
         timer = 0;
     }
 
-    pos += dir * m_speed * dt;
-    setPosition(pos);
-
-    // Gestion des bords et transition
-    // Si l'abeille touche le bord GAUCHE (sortie de ruche) ou DROITE (entrée de ruche)
-    if (m_windowType == EWindowType::BEEHIVE && !m_hasPollen) {
-        if (pos.x <= 0) {
-            // L'application s'occupera du switch, on se contente de marquer le souhait
-            m_position.x = windowSize.x - 10; // Prête à apparaître à droite de l'autre fenêtre
-        }
-    } else if (m_windowType == EWindowType::OUTSIDE && m_hasPollen) {
-        if (pos.x >= windowSize.x - m_sprite.getGlobalBounds().width) {
-            m_position.x = 10; // Prête à apparaître à gauche de l'autre fenêtre
-        }
-    }
-
+    m_position += dir * m_speed * dt;
+    setPosition(m_position);
     keepInsideWindow(windowSize);
 }
 
 void CWorkerBee::draw(sf::RenderWindow& window) const
 {
-    // On pourrait changer la couleur si elle a du pollen pour aider au debug
-    if (m_hasPollen) {
-        const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::Yellow);
+    // Si pleine, on peut la teinter légèrement en jaune pour le debug
+    if (isFull()) {
+        const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color(255, 255, 150));
     } else {
         const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::White);
     }
-    CBee::draw(window);
+    window.draw(m_sprite);
+}
+
+bool CWorkerBee::isFull() const {
+    return m_pollenCollected >= m_capacity;
+}
+
+void CWorkerBee::addPollen(int amount) {
+    m_pollenCollected += amount;
+    if (m_pollenCollected > m_capacity) m_pollenCollected = m_capacity;
+}
+
+void CWorkerBee::resetPollen() {
+    m_pollenCollected = 0;
 }

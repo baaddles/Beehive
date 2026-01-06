@@ -24,6 +24,9 @@ public:
     void setWindowType(EWindowType newWindow);
     EWindowType getWindowType() const;
 
+    // Utile pour les collisions avec les fleurs
+    sf::FloatRect getBounds() const;
+
 protected:
     void keepInsideWindow(const sf::Vector2u& windowSize);
 };

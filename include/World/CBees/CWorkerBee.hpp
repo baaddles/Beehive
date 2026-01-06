@@ -4,7 +4,8 @@
 class CWorkerBee : public CBee
 {
 private:
-    bool m_hasPollen;
+    int m_pollenCollected;
+    int m_capacity;
 
 public:
     CWorkerBee(sf::Vector2f pos, EWindowType winType = EWindowType::BEEHIVE);
@@ -12,6 +13,7 @@ public:
     void update(float dt, const sf::Vector2u& windowSize) override;
     void draw(sf::RenderWindow& window) const override;
 
-    bool hasPollen() const { return m_hasPollen; }
-    void setHasPollen(bool val) { m_hasPollen = val; }
+    bool isFull() const;
+    void addPollen(int amount);
+    void resetPollen();
 };
