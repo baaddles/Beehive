@@ -4,12 +4,13 @@
 class CQueenBee : public CBee
 {
 private:
-    bool m_reproduction; // Permet de savoir si la reine est en train de créer une abeille. Si m_reproduction = TRUE alors elle crée une abeille
-    float m_reproductionFrequency; // Vitesse de création d'une abeille en secondes
+    bool m_reproduction;              // Si la reine crée une abeille
+    float m_reproductionFrequency;    // Temps entre créations
+    float m_verticalDirection;        // Mouvement haut/bas
 
 public:
-    CQueenBee(sf::Vector2f pos); // pos : Coordonnées sur la fenêtre
+    CQueenBee(sf::Vector2f pos);
 
-    void update(float dt) override;
-    void draw(sf::RenderWindow& window) override;
+    void update(float dt, const sf::Vector2u& windowSize) override;
+    void draw(sf::RenderWindow& window) const override;
 };

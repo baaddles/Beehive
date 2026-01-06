@@ -1,26 +1,31 @@
 #pragma once
-
 #include <SFML/Graphics.hpp>
 #include <memory>
-
-#include "World/CScene.hpp"
-#include "World/COutsideScene.hpp"
-#include "World/CHiveScene.hpp"
+#include <vector>
+#include "World/CBees/CBee.hpp"
+#include "World/CBees/CWorkerBee.hpp"
+#include "World/CBees/CQueenBee.hpp"
+#include "World/CBees/CWarriorBee.hpp"
+#include "Graphics/CTextureManager.hpp"
 
 class CApplication
 {
-private:
-    sf::RenderWindow m_window;
-    std::unique_ptr<CScene> m_currentScene;
+public:
+    CApplication();
+    void run();
 
-    void handleResize(const sf::Event& event);
+private:
     void handleEvents();
     void update(float dt);
     void render();
 
-    void switchScene();
+private:
+    sf::RenderWindow m_outsideWindow;
+    sf::RenderWindow m_insideWindow;
 
-public:
-    CApplication();
-    void run();
+    sf::Sprite m_outsideBackground;
+    sf::Sprite m_insideBackground;
+
+    // Vecteur polymorphique pour toutes les abeilles
+    std::vector<std::unique_ptr<CBee>> m_entities;
 };

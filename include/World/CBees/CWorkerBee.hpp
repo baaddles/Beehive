@@ -1,18 +1,17 @@
 #pragma once
-#include "World/CBees/CBee.hpp"
-#include "Utils/CEnums.hpp"
+#include "CBee.hpp"
 
 class CWorkerBee : public CBee
 {
 private:
-    EWorkerState m_state;
-    int m_energy; // Quantité de pollen récupérable avant de retourner à la ruche
-    float m_foragingSpeed; // Vitesse de pollinisation d'une fleur en secondes
-    float m_movementSpeed; // Vitesse de déplacement générale (entre fleurs, retour à la ruche, contribue au temps de repos)
+    bool m_hasPollen;
 
 public:
-    CWorkerBee(sf::Vector2f pos);
+    CWorkerBee(sf::Vector2f pos, EWindowType winType = EWindowType::BEEHIVE);
 
-    void update(float dt) override;
-    void draw(sf::RenderWindow& window) override;
+    void update(float dt, const sf::Vector2u& windowSize) override;
+    void draw(sf::RenderWindow& window) const override;
+
+    bool hasPollen() const { return m_hasPollen; }
+    void setHasPollen(bool val) { m_hasPollen = val; }
 };
