@@ -10,6 +10,7 @@ private:
     int m_currentLevel;
     sf::RectangleShape m_barBack;
     sf::RectangleShape m_barFront;
+    float m_baseSpawnDuration;
 
 public:
     CQueenBee(sf::Vector2f pos);

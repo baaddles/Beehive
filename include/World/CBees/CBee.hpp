@@ -26,6 +26,8 @@ public:
     // Méthode spécifique aux abeilles (Level Up)
     virtual void levelUpStats(float factor) = 0;
 
+    void setPosition(sf::Vector2f pos) override;
+
     // Getters / Setters spécifiques
     void setHomePosition(sf::Vector2f pos) { m_homePosition = pos; }
     sf::Vector2f getHomePosition() const { return m_homePosition; }

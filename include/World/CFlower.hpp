@@ -8,6 +8,7 @@ class CFlower : public CEntity {
     float m_regenTimer;
     int m_pollenValue;
     sf::Sprite m_sprite;
+    static float s_currentRegenTime;
 
 public:
     CFlower(sf::Vector2f pos);
@@ -22,4 +23,7 @@ public:
     bool isAvailable() const;
     void setReserved(bool r) { m_isReserved = r; }
     int collect();
+
+    static void setGlobalRegenTime(float time);
+    static float getGlobalRegenTime();
 };

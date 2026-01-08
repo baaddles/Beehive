@@ -1,5 +1,6 @@
 #include "World/CIntruder.hpp"
 #include "Graphics/CTextureManager.hpp"
+#include "Utils/CConstants.hpp"
 #include <cmath>
 #include <string>
 
@@ -10,6 +11,8 @@ CIntruder::CIntruder(sf::Vector2f pos, int hp, int force, float speed)
     sf::FloatRect bounds = m_sprite.getLocalBounds();
     m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
     m_sprite.setPosition(m_position);
+
+    m_sprite.setScale(constants::INTRUDER_SCALE, constants::INTRUDER_SCALE);
 }
 
 void CIntruder::update(float dt, const sf::Vector2u& windowSize) {

@@ -1,5 +1,6 @@
 #include "World/CBees/CQueenBee.hpp"
 #include "Graphics/CTextureManager.hpp"
+#include "Utils/CConstants.hpp"
 #include <algorithm> // pour std::max
 #include <sstream>
 #include <iomanip>
@@ -7,31 +8,30 @@
 CQueenBee::CQueenBee(sf::Vector2f pos)
     : CBee(pos, EWindowType::BEEHIVE, 30.f),
       m_spawnTimer(0.f),
-      m_spawnDuration(45.0f),
       m_currentLevel(1)
 {
+    // --- RANDOMISATION SPAWN TIME ---
+    // Valeur entre MIN et MAX
+    float randomOffset = static_cast<float>(rand() % (int)(constants::QUEEN_MAX_SPAWN_TIME - constants::QUEEN_MIN_SPAWN_TIME));
+    m_spawnDuration = constants::QUEEN_MIN_SPAWN_TIME + randomOffset;
+
+    // ... (Sprite & Barres init inchangés) ...
     m_sprite.setTexture(CTextureManager::instance().getTexture("queen_bee.png"), true);
-    
     sf::FloatRect bounds = m_sprite.getLocalBounds();
     m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
-
-    // Barre de progression
-    m_barBack.setSize(sf::Vector2f(60.f, 6.f));
-    m_barBack.setFillColor(sf::Color::Black);
-    m_barBack.setOutlineThickness(1.f);
-    m_barBack.setOutlineColor(sf::Color::White);
-    m_barBack.setOrigin(30.f, 3.f); 
-
-    m_barFront.setSize(sf::Vector2f(0.f, 6.f));
-    m_barFront.setFillColor(sf::Color::Green);
-    m_barFront.setOrigin(30.f, 3.f);
+    
+    // ... (Init barres) ...
+    m_barBack.setSize(sf::Vector2f(60.f, 6.f)); m_barBack.setFillColor(sf::Color::Black); m_barBack.setOutlineThickness(1.f); m_barBack.setOutlineColor(sf::Color::White); m_barBack.setOrigin(30.f, 3.f); 
+    m_barFront.setSize(sf::Vector2f(0.f, 6.f)); m_barFront.setFillColor(sf::Color::Green); m_barFront.setOrigin(30.f, 3.f);
 }
 
 void CQueenBee::setHiveLevel(int level) {
-    m_currentLevel = level;
-    m_spawnDuration = std::max(5.0f, 45.0f - (float)(level - 1));
+    if (m_currentLevel != level) {
+        m_currentLevel = level;
+        // La durée est la base aléatoire moins 1 seconde par niveau
+        m_spawnDuration = std::max(5.0f, m_baseSpawnDuration - (float)(level - 1));
+    }
 }
-
 void CQueenBee::update(float dt, const sf::Vector2u& windowSize)
 {
     sf::Vector2f pos = getPosition();

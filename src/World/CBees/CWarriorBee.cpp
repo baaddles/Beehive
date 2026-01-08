@@ -4,15 +4,28 @@
 #include <cmath>
 #include <iostream>
 #include <string>
+#include <cstdlib>
 
 CWarriorBee::CWarriorBee(sf::Vector2f pos, EWindowType win)
-    : CBee(pos, win, constants::WARRIOR_SPEED), 
+    : CBee(pos, win, 0.f), // On initialise speed à 0 ici, on le calcule juste après
       m_state(EWarriorState::REPOS),
       m_force(4 + (std::rand() % 3)), 
       m_attackFrequency(1.5f), 
       m_attackTimer(0.f),
       m_recoilVelocity(0.f, 0.f)
 {
+    // --- RANDOMISATION VITESSE (Biaisée vers le bas) ---
+    // On génère un float entre 0.0 et 1.0
+    float r = static_cast<float>(rand()) / static_cast<float>(RAND_MAX);
+    
+    // On met r au carré (r*r). 
+    // Ex: si r=0.5 -> 0.25. Si r=0.9 -> 0.81.
+    // Cela augmente la probabilité d'avoir des petits nombres, donc proche du MIN.
+    float biasedR = r * r; 
+
+    m_speed = constants::WARRIOR_MIN_SPEED + biasedR * (constants::WARRIOR_MAX_SPEED - constants::WARRIOR_MIN_SPEED);
+
+    // ... (Sprite init inchangé) ...
     m_sprite.setTexture(CTextureManager::instance().getTexture("warrior_bee.png"));
     sf::FloatRect bounds = m_sprite.getLocalBounds();
     m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);

@@ -188,6 +188,51 @@ void CApplication::render() {
 }
 void CApplication::renderUI(sf::RenderWindow& window) { if (m_hiveHealth <= 0) { window.draw(m_txtGameOver); return; } int nbW = 0, nbWar = 0; for(auto& e : m_entities) { if(dynamic_cast<CWorkerBee*>(e.get())) nbW++; if(dynamic_cast<CWarriorBee*>(e.get())) nbWar++; } std::stringstream ss; ss << "Workers: " << nbW << "\nWarriors: " << nbWar; m_txtCounters.setString(ss.str()); float hpRatio = (float)m_hiveHealth / (float)m_hiveMaxHealth; if (hpRatio < 0.f) hpRatio = 0.f; m_barHealthFront.setSize(sf::Vector2f(constants::UI_BAR_WIDTH * hpRatio, constants::UI_HEALTH_BAR_HEIGHT)); if (hpRatio > 0.5f) m_barHealthFront.setFillColor(sf::Color::Green); else if (hpRatio > 0.25f) m_barHealthFront.setFillColor(sf::Color::Yellow); else if (hpRatio > 0.10f) m_barHealthFront.setFillColor(sf::Color(255, 165, 0)); else m_barHealthFront.setFillColor(sf::Color::Red); std::stringstream ssHp; ssHp << "HP: " << m_hiveHealth << " / " << m_hiveMaxHealth; m_txtHealthInfo.setString(ssHp.str()); sf::FloatRect hpRect = m_txtHealthInfo.getLocalBounds(); m_txtHealthInfo.setOrigin(hpRect.left + hpRect.width/2.0f, hpRect.top + hpRect.height/2.0f); m_txtHealthInfo.setPosition(constants::HIVE_CENTER_X, constants::UI_HEALTH_Y + constants::UI_HEALTH_BAR_HEIGHT/2.f); float xpRatio = (float)m_currentPollen / (float)m_pollenForNextLevel; if (xpRatio > 1.f) xpRatio = 1.f; m_barXPFront.setSize(sf::Vector2f(constants::UI_BAR_WIDTH * xpRatio, constants::UI_XP_BAR_HEIGHT)); std::stringstream ssLvl; ssLvl << "Lvl " << m_hiveLevel << " - " << m_currentPollen << " / " << m_pollenForNextLevel; m_txtLevelInfo.setString(ssLvl.str()); sf::FloatRect xpRect = m_txtLevelInfo.getLocalBounds(); m_txtLevelInfo.setOrigin(xpRect.left + xpRect.width/2.0f, xpRect.top + xpRect.height/2.0f); m_txtLevelInfo.setPosition(constants::HIVE_CENTER_X, constants::UI_XP_Y + constants::UI_XP_BAR_HEIGHT/2.f); window.draw(m_barHealthBack); window.draw(m_barHealthFront); window.draw(m_txtHealthInfo); window.draw(m_barXPBack); window.draw(m_barXPFront); window.draw(m_txtLevelInfo); window.draw(m_txtCounters); }
 void CApplication::addPollenToHive(int amount) { if (amount <= 0) return; m_currentPollen += amount; if (m_hiveHealth < m_hiveMaxHealth) { m_hiveHealth += 1; if (m_hiveHealth > m_hiveMaxHealth) m_hiveHealth = m_hiveMaxHealth; } if (m_currentPollen >= m_pollenForNextLevel) performLevelUp(); }
-void CApplication::spawnWave() { m_waveCount++; std::cout << "!!! VAGUE " << m_waveCount << " !!!" << std::endl; float multiplier = 1.0f + (m_waveCount * constants::WAVE_HP_FORCE_MULT); int finalHP = static_cast<int>(constants::BASE_INTRUDER_HP * multiplier); int finalForce = static_cast<int>(constants::BASE_INTRUDER_FORCE * multiplier); float finalSpeed = constants::BASE_INTRUDER_SPEED * (2.0f + (m_waveCount * constants::WAVE_SPEED_MULT)); for(int i = 0; i < constants::INTRUDERS_PER_WAVE; ++i) { float startY = 100.f + (std::rand() % 300); float startX = (float)constants::WINDOW_WIDTH + (i * 60.f); m_intruders.push_back(std::make_unique<CIntruder>(sf::Vector2f(startX, startY), finalHP, finalForce, finalSpeed)); } }
+void CApplication::spawnWave() {
+    m_waveCount++;
+    std::cout << "!!! VAGUE " << m_waveCount << " !!!" << std::endl;
+
+    float multiplier = 1.0f + (m_waveCount * constants::WAVE_HP_FORCE_MULT);
+    
+    // --- RANDOMISATION HP INTRUS ---
+    // 1. On tire un nombre de base entre 200 et 300
+    int baseRandomHP = constants::INTRUDER_MIN_HP + (rand() % (constants::INTRUDER_MAX_HP - constants::INTRUDER_MIN_HP + 1));
+    
+    // 2. On applique le multiplicateur de vague sur cette base aléatoire
+    int finalHP = static_cast<int>(baseRandomHP * multiplier);
+    
+    int finalForce = static_cast<int>(constants::BASE_INTRUDER_FORCE * multiplier);
+    float finalSpeed = constants::BASE_INTRUDER_SPEED * (2.0f + (m_waveCount * constants::WAVE_SPEED_MULT));
+
+    for(int i = 0; i < constants::INTRUDERS_PER_WAVE; ++i) {
+        float startY = 100.f + (std::rand() % 300);
+        float startX = (float)constants::WINDOW_WIDTH + (i * 60.f); 
+        m_intruders.push_back(std::make_unique<CIntruder>(sf::Vector2f(startX, startY), finalHP, finalForce, finalSpeed));
+    }
+}
 void CApplication::spawnUnit() { int nbWorkers = 0, nbWarriors = 0; for (auto& entity : m_entities) { if (dynamic_cast<CWorkerBee*>(entity.get())) nbWorkers++; if (dynamic_cast<CWarriorBee*>(entity.get())) nbWarriors++; } if (nbWarriors > nbWorkers) { m_entities.push_back(std::make_unique<CWorkerBee>(sf::Vector2f(350.f, 250.f), EWindowType::BEEHIVE)); std::cout << "[REINE] Naissance d'une Ouvriere" << std::endl; } else { auto newWarrior = std::make_unique<CWarriorBee>(sf::Vector2f(350.f, 250.f), EWindowType::BEEHIVE); float gridX = constants::GRID_START_X + (nbWarriors / constants::WARRIORS_PER_COLUMN) * constants::GRID_SPACING_X; float gridY = constants::GRID_START_Y + (nbWarriors % constants::WARRIORS_PER_COLUMN) * constants::GRID_SPACING_Y; newWarrior->setHomePosition(sf::Vector2f(gridX, gridY)); newWarrior->setPatrolPosition(newWarrior->getHomePosition()); m_entities.push_back(std::move(newWarrior)); std::cout << "[REINE] Naissance d'une Guerriere" << std::endl; } }
-void CApplication::performLevelUp() { m_hiveLevel++; m_currentPollen = 0; m_pollenForNextLevel = static_cast<int>(m_pollenForNextLevel * 1.5f); int maxHealthGain = 20; m_hiveMaxHealth += maxHealthGain; m_hiveHealth += maxHealthGain; int healAmount = static_cast<int>(m_hiveMaxHealth * constants::LEVEL_UP_HEAL_RATIO); m_hiveHealth = std::min(m_hiveHealth + healAmount, m_hiveMaxHealth); for (auto& entity : m_entities) { CBee* bee = dynamic_cast<CBee*>(entity.get()); if (bee) { bee->levelUpStats(constants::LEVEL_UP_STAT_BUFF); } } std::cout << "=== LEVEL UP: NIVEAU " << m_hiveLevel << " ===" << std::endl; spawnWave(); }
+void CApplication::performLevelUp() {
+    m_hiveLevel++;
+    m_currentPollen = 0;
+    m_pollenForNextLevel = static_cast<int>(m_pollenForNextLevel * 1.5f);
+    
+    m_hiveMaxHealth += constants::HEALTH_GAIN_ON_LEVEL_UP;
+    m_hiveHealth += constants::HEALTH_GAIN_ON_LEVEL_UP;
+    int healAmount = static_cast<int>(m_hiveMaxHealth * constants::LEVEL_UP_HEAL_RATIO);
+    m_hiveHealth = std::min(m_hiveHealth + healAmount, m_hiveMaxHealth);
+
+    // --- ACCELERATION FLEURS (EXPONENTIEL) ---
+    // Nouvelle durée = Base * (0.95 ^ (Niveau-1))
+    float newRegenTime = constants::FLOWER_BASE_REGEN_TIME * std::pow(constants::FLOWER_DECAY_FACTOR, (m_hiveLevel - 1));
+    CFlower::setGlobalRegenTime(newRegenTime);
+
+    std::cout << "=== LEVEL UP " << m_hiveLevel << " ===" << std::endl;
+    std::cout << "Fleurs regen: " << CFlower::getGlobalRegenTime() << "s" << std::endl;
+
+    for (auto& entity : m_entities) {
+        CBee* bee = dynamic_cast<CBee*>(entity.get());
+        if (bee) bee->levelUpStats(constants::LEVEL_UP_STAT_BUFF);
+    }
+
+    spawnWave();
+}

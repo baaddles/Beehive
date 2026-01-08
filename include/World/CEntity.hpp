@@ -26,5 +26,5 @@ public:
     EWindowType getWindowType() const;
     void setWindowType(EWindowType type);
     sf::Vector2f getPosition() const;
-    void setPosition(sf::Vector2f pos);
+    virtual void setPosition(sf::Vector2f pos);
 };

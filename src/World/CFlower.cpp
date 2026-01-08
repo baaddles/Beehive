@@ -3,6 +3,8 @@
 #include "Utils/CConstants.hpp"
 #include <string>
 
+float CFlower::s_currentRegenTime = constants::FLOWER_BASE_REGEN_TIME;
+
 CFlower::CFlower(sf::Vector2f pos)
     : CEntity(pos, EWindowType::OUTSIDE), 
       m_isAvailable(true), 
@@ -10,6 +12,7 @@ CFlower::CFlower(sf::Vector2f pos)
       m_regenTimer(0.f),
       m_pollenValue(constants::POLLEN_PER_FLOWER)
 {
+    // ... (Sprite init inchangé) ...
     m_sprite.setTexture(CTextureManager::instance().getTexture("flower.png"), true);
     sf::FloatRect bounds = m_sprite.getLocalBounds();
     m_sprite.setOrigin(bounds.width / 2.f, bounds.height / 2.f);
@@ -41,8 +44,17 @@ bool CFlower::isAvailable() const {
 int CFlower::collect() {
     m_isAvailable = false;
     m_isReserved = false;
-    m_regenTimer = constants::FLOWER_REGEN_TIME;
+    m_regenTimer = s_currentRegenTime; // Utilise la valeur statique dynamique
     return m_pollenValue;
+}
+
+void CFlower::setGlobalRegenTime(float time) {
+    // On s'assure de ne pas descendre sous le minimum
+    s_currentRegenTime = std::max(constants::FLOWER_MIN_REGEN_TIME, time);
+}
+
+float CFlower::getGlobalRegenTime() {
+    return s_currentRegenTime;
 }
 
 sf::FloatRect CFlower::getBounds() const { 
