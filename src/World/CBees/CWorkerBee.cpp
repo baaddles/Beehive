@@ -3,6 +3,7 @@
 #include "Utils/CConstants.hpp"
 #include <cstdlib>
 #include <cmath>
+#include <iostream>
 
 CWorkerBee::CWorkerBee(sf::Vector2f pos, EWindowType winType)
     : CBee(pos, winType, constants::WORKER_SPEED), 
@@ -91,7 +92,7 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
             wanderDir = sf::Vector2f(std::cos(angle), std::sin(angle));
             wanderTimer = 0;
         }
-        m_position += wanderDir * (m_speed * 0.6f) * dt;
+        m_position += wanderDir * m_speed * dt;
     }
 
     setPosition(m_position);
@@ -111,4 +112,14 @@ void CWorkerBee::resetPollen() {
     m_behavior = EWorkerBehavior::WANDERING; 
     if(m_targetFlower) m_targetFlower->setReserved(false);
     m_targetFlower = nullptr;
+}
+
+void CWorkerBee::levelUpStats(float factor) {
+    // Augmente la vitesse de 10%
+    m_speed *= (1.0f + factor); 
+    
+    // Augmente la capacité de pollen de 1 tous les 2 niveaux (par exemple)
+    m_capacity += 1; 
+    
+    std::cout << "Worker a gagne en competence ! Vitesse: " << m_speed << ", Capacite: " << m_capacity << std::endl;
 }

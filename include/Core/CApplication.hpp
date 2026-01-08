@@ -8,6 +8,7 @@
 #include "World/CBees/CWarriorBee.hpp"
 #include "World/CFlower.hpp"
 #include "Graphics/CTextureManager.hpp"
+#include "World/CIntruder.hpp"
 
 class CApplication
 {
@@ -19,6 +20,12 @@ private:
     void handleEvents();
     void update(float dt);
     void render();
+    void addPollenToHive(int amount);
+    void performLevelUp();
+
+    int m_hiveLevel;
+    int m_currentPollen;      // Experience actuelle
+    int m_pollenForNextLevel; // Objectif à atteindre
 
 private:
     sf::RenderWindow m_outsideWindow;
@@ -32,4 +39,5 @@ private:
 
     std::vector<std::unique_ptr<CBee>> m_entities;
     std::vector<std::unique_ptr<CFlower>> m_flowers;
+    std::vector<std::unique_ptr<CIntruder>> m_intruders;
 };

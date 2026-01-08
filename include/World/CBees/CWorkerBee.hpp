@@ -31,6 +31,8 @@ public:
     void draw(sf::RenderWindow& window) const override;
 
     void searchFlower(const std::vector<std::unique_ptr<CFlower>>& flowers);
+    void levelUpStats(float factor) override;
+    int getPollenCollected() const { return m_pollenCollected; }
 
     bool isFull() const;
     void resetPollen();
