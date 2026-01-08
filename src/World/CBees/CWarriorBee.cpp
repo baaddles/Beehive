@@ -7,8 +7,8 @@
 CWarriorBee::CWarriorBee(sf::Vector2f pos, EWindowType win)
     : CBee(pos, win, constants::WARRIOR_SPEED), 
       m_state(EWarriorState::REPOS),
-      m_force(24 + (std::rand() % 7)), 
-      m_attackFrequency(1.5f), 
+      m_force(26 + (std::rand() % 7)), 
+      m_attackFrequency(1.0f), 
       m_attackTimer(0.f),
       m_recoilVelocity(0.f, 0.f)
 {

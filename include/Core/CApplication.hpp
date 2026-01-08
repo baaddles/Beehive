@@ -28,6 +28,9 @@ private:
     void addPollenToHive(int amount);
     void performLevelUp();
     void spawnWave();
+    
+    // NOUVEAU : Gère la création logique des abeilles (Worker/Warrior)
+    void spawnUnit();
 
     int m_hiveLevel;
     int m_currentPollen;

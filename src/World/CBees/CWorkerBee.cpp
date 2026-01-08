@@ -11,9 +11,9 @@ CWorkerBee::CWorkerBee(sf::Vector2f pos, EWindowType winType)
       m_capacity(constants::WORKER_CAPACITY),
       m_collectionTimer(0.f),
       m_collectionDuration(2.0f),
+      m_wanderSeed((float)(rand() % 100)),
       m_behavior(EWorkerBehavior::WANDERING),
-      m_targetFlower(nullptr),
-      m_wanderSeed((float)(rand() % 100))
+      m_targetFlower(nullptr)
 {
     m_sprite.setTexture(CTextureManager::instance().getTexture("worker_bee.png"), true);
     sf::FloatRect bounds = m_sprite.getLocalBounds();
