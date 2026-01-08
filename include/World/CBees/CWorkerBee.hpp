@@ -1,16 +1,15 @@
 #pragma once
+#include "World/CBees/CBee.hpp"
+#include "World/CFlower.hpp"
 #include <vector>
 #include <memory>
-#include "World/CBees/CBee.hpp"
-
-class CFlower;
 
 enum class EWorkerBehavior {
     WANDERING,
     GOING_TO_FLOWER,
     COLLECTING,
     RETURNING,
-    DELIVERING // Nouvel état pour aller au centre de la ruche
+    DELIVERING
 };
 
 class CWorkerBee : public CBee
@@ -21,21 +20,23 @@ private:
     float m_collectionTimer;
     float m_collectionDuration;
     
+    // Pour le mouvement fluide
+    float m_wanderSeed; // <--- NOUVEAU : Graine aléatoire unique
+
     EWorkerBehavior m_behavior;
-    CFlower* m_targetFlower;
+    CFlower* m_targetFlower; // Ptr vers la fleur cible
 
 public:
-    CWorkerBee(sf::Vector2f pos, EWindowType winType = EWindowType::BEEHIVE);
+    CWorkerBee(sf::Vector2f pos, EWindowType winType);
 
     void update(float dt, const sf::Vector2u& windowSize) override;
     void draw(sf::RenderWindow& window) const override;
+    void levelUpStats(float factor) override;
 
     void searchFlower(const std::vector<std::unique_ptr<CFlower>>& flowers);
-    void levelUpStats(float factor) override;
-    int getPollenCollected() const { return m_pollenCollected; }
-
+    void startDelivering();
     bool isFull() const;
     void resetPollen();
-    void startDelivering(); // Force le passage en mode livraison
+    int getPollenCollected() const { return m_pollenCollected; }
     EWorkerBehavior getBehavior() const { return m_behavior; }
 };

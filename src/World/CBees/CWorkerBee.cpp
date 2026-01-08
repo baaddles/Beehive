@@ -12,7 +12,8 @@ CWorkerBee::CWorkerBee(sf::Vector2f pos, EWindowType winType)
       m_collectionTimer(0.f),
       m_collectionDuration(2.0f),
       m_behavior(EWorkerBehavior::WANDERING),
-      m_targetFlower(nullptr)
+      m_targetFlower(nullptr),
+      m_wanderSeed((float)(rand() % 100))
 {
     m_sprite.setTexture(CTextureManager::instance().getTexture("worker_bee.png"), true);
     sf::FloatRect bounds = m_sprite.getLocalBounds();
@@ -30,8 +31,6 @@ void CWorkerBee::searchFlower(const std::vector<std::unique_ptr<CFlower>>& flowe
             return;
         }
     }
-    
-    // Si on est ici, c'est qu'aucune fleur n'est disponible
     m_behavior = EWorkerBehavior::RETURNING;
 }
 
@@ -41,6 +40,7 @@ void CWorkerBee::startDelivering() {
 
 void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
 {
+    // --- GESTION ETAT RECOLTE ---
     if (m_behavior == EWorkerBehavior::COLLECTING) {
         m_collectionTimer -= dt;
         if (m_collectionTimer <= 0) {
@@ -56,12 +56,13 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
     sf::Vector2f targetPos = m_position;
     bool hasTarget = false;
 
+    // --- DEFINITION CIBLE ---
     if (m_behavior == EWorkerBehavior::GOING_TO_FLOWER && m_targetFlower) {
         targetPos = m_targetFlower->getPosition();
         hasTarget = true;
     } 
     else if (m_behavior == EWorkerBehavior::RETURNING) {
-        targetPos = sf::Vector2f(-100.f, m_position.y);
+        targetPos = sf::Vector2f(-100.f, m_position.y); // Gauche
         hasTarget = true;
     }
     else if (m_behavior == EWorkerBehavior::DELIVERING) {
@@ -69,12 +70,18 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
         hasTarget = true;
     }
 
+    // --- MOUVEMENT ---
+    sf::Vector2f movementDir(0.f, 0.f);
+
     if (hasTarget) {
         sf::Vector2f diff = targetPos - m_position;
         float dist = std::sqrt(diff.x * diff.x + diff.y * diff.y);
+        
         if (dist > 5.f) {
-            m_position += (diff / dist) * m_speed * dt;
+            movementDir = (diff / dist);
+            m_position += movementDir * m_speed * dt;
         } else {
+            // Arrivée à destination
             if (m_behavior == EWorkerBehavior::GOING_TO_FLOWER) {
                 m_behavior = EWorkerBehavior::COLLECTING;
                 m_collectionTimer = m_collectionDuration;
@@ -82,25 +89,42 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
                 resetPollen();
             }
         }
-    } else {
-        // Mode WANDERING (Errance plus lente)
-        static float wanderTimer = 0;
-        static sf::Vector2f wanderDir(1.f, 0.f);
-        wanderTimer += dt;
-        if (wanderTimer > 1.2f) {
-            float angle = (std::rand() % 360) * 3.14159f / 180.f;
-            wanderDir = sf::Vector2f(std::cos(angle), std::sin(angle));
-            wanderTimer = 0;
-        }
-        m_position += wanderDir * m_speed * dt;
+    } 
+    else {
+        // --- ANIMATION WANDER (Sinusoidale Haut/Bas) ---
+        static float globalTime = 0.f;
+        globalTime += dt;
+        
+        // Mouvement Vertical (Oscillation)
+        // m_wanderSeed permet de désynchroniser les abeilles
+        float waveY = std::sin(globalTime * 3.f + m_wanderSeed) * 0.5f; 
+        
+        // Mouvement Horizontal (Lent drift)
+        // On utilise cos pour le X pour faire des cercles/ovales aplatis
+        float waveX = std::cos(globalTime * 1.f + m_wanderSeed) * 0.3f;
+
+        m_position.x += waveX * m_speed * 0.5f * dt;
+        m_position.y += waveY * m_speed * 0.5f * dt;
+
+        movementDir = sf::Vector2f(waveX, waveY);
     }
+
+    // --- ORIENTATION VISUELLE (FLIP) ---
+    // On ne touche JAMAIS à la rotation (setRotation(0)).
+    // On flip le scale X.
+    if (movementDir.x < -0.1f) {
+        m_sprite.setScale(-1.f, 1.f); // Regarde à gauche
+    } else if (movementDir.x > 0.1f) {
+        m_sprite.setScale(1.f, 1.f);  // Regarde à droite
+    }
+    m_sprite.setRotation(0.f);
 
     setPosition(m_position);
     keepInsideWindow(windowSize);
 }
 
 void CWorkerBee::draw(sf::RenderWindow& window) const {
-    if (isFull()) const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::Yellow);
+    if (m_pollenCollected > 0) const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::Yellow);
     else const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::White);
     window.draw(m_sprite);
 }
@@ -115,11 +139,6 @@ void CWorkerBee::resetPollen() {
 }
 
 void CWorkerBee::levelUpStats(float factor) {
-    // Augmente la vitesse de 10%
     m_speed *= (1.0f + factor); 
-    
-    // Augmente la capacité de pollen de 1 tous les 2 niveaux (par exemple)
     m_capacity += 1; 
-    
-    std::cout << "Worker a gagne en competence ! Vitesse: " << m_speed << ", Capacite: " << m_capacity << std::endl;
 }

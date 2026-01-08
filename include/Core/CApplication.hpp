@@ -20,12 +20,37 @@ private:
     void handleEvents();
     void update(float dt);
     void render();
+    
+    // UI Render Function
+    void renderUI(sf::RenderWindow& window);
+    void initUI();
+
     void addPollenToHive(int amount);
     void performLevelUp();
+    void spawnWave();
 
     int m_hiveLevel;
-    int m_currentPollen;      // Experience actuelle
-    int m_pollenForNextLevel; // Objectif à atteindre
+    int m_currentPollen;
+    int m_pollenForNextLevel;
+
+    int m_hiveHealth;
+    int m_hiveMaxHealth;
+    int m_waveCount;
+
+    // --- UI ELEMENTS ---
+    sf::Font m_font;
+    sf::Text m_txtCounters;
+    sf::Text m_txtLevelInfo;
+    sf::Text m_txtGameOver;
+    sf::Text m_txtHealthInfo;
+
+    // Health Bar
+    sf::RectangleShape m_barHealthBack;
+    sf::RectangleShape m_barHealthFront;
+
+    // XP Bar
+    sf::RectangleShape m_barXPBack;
+    sf::RectangleShape m_barXPFront;
 
 private:
     sf::RenderWindow m_outsideWindow;
@@ -33,8 +58,6 @@ private:
 
     sf::Sprite m_outsideBackground;
     sf::Sprite m_insideBackground;
-    
-    // Rectangle pour le sol vert
     sf::RectangleShape m_grassRect;
 
     std::vector<std::unique_ptr<CBee>> m_entities;
