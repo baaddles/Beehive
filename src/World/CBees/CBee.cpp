@@ -1,8 +1,13 @@
 #include "World/CBees/CBee.hpp"
+#include "Graphics/CTextureManager.hpp"
+#include "Utils/CConstants.hpp"
 
 CBee::CBee(sf::Vector2f pos, EWindowType win, float speed)
-    : m_position(pos), m_windowType(win), m_speed(speed)
+    : CEntity(pos, win), // Appel du constructeur de CEntity
+      m_speed(speed),
+      m_homePosition(pos)
 {
+    // Texture par défaut (sera écrasée par les classes filles)
     m_sprite.setTexture(CTextureManager::instance().getTexture("default.png"), true);
     
     sf::FloatRect bounds = m_sprite.getLocalBounds();
@@ -10,30 +15,15 @@ CBee::CBee(sf::Vector2f pos, EWindowType win, float speed)
     m_sprite.setPosition(m_position);
 }
 
+void CBee::update(float dt, const sf::Vector2u& windowSize)
+{
+    // Implémentation vide par défaut, surchargée par les filles
+    (void)dt; (void)windowSize;
+}
+
 void CBee::draw(sf::RenderWindow& window) const
 {
     window.draw(m_sprite);
-}
-
-sf::Vector2f CBee::getPosition() const
-{
-    return m_position;
-}
-
-void CBee::setPosition(const sf::Vector2f& pos)
-{
-    m_position = pos;
-    m_sprite.setPosition(m_position);
-}
-
-void CBee::setWindowType(EWindowType newWindow)
-{
-    m_windowType = newWindow;
-}
-
-EWindowType CBee::getWindowType() const
-{
-    return m_windowType;
 }
 
 sf::FloatRect CBee::getBounds() const
@@ -45,15 +35,10 @@ void CBee::keepInsideWindow(const sf::Vector2u& windowSize)
 {
     sf::FloatRect bounds = m_sprite.getGlobalBounds();
     float halfHeight = bounds.height / 2.f;
-    float halfWidth = bounds.width / 2.f;
-
-    // --- CORRECTION : On ne bloque plus les X pour permettre la transition ---
-    // On bloque uniquement le HAUT et le BAS
-    if (m_position.y < halfHeight) m_position.y = halfHeight;
-    if (m_position.y > windowSize.y - halfHeight) m_position.y = windowSize.y - halfHeight;
-
-    // Optionnel : On peut bloquer les X seulement si l'abeille n'est pas en train de transitionner
-    // Mais pour ta logique, laisser les X libres est plus simple.
     
+    // On contraint seulement Y (Haut/Bas)
+    if (m_position.y < halfHeight) m_position.y = halfHeight;
+    if (m_position.y > (float)windowSize.y - halfHeight) m_position.y = (float)windowSize.y - halfHeight;
+
     m_sprite.setPosition(m_position);
 }

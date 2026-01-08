@@ -24,12 +24,12 @@ private:
     // UI Render Function
     void renderUI(sf::RenderWindow& window);
     void initUI();
+    // NOUVEAU : Helper pour afficher le tooltip
+    void drawTooltip(sf::RenderWindow& window, const std::string& text, sf::Vector2f mousePos);
 
     void addPollenToHive(int amount);
     void performLevelUp();
     void spawnWave();
-    
-    // NOUVEAU : Gère la création logique des abeilles (Worker/Warrior)
     void spawnUnit();
 
     int m_hiveLevel;
@@ -47,18 +47,18 @@ private:
     sf::Text m_txtGameOver;
     sf::Text m_txtHealthInfo;
 
-    // Health Bar
     sf::RectangleShape m_barHealthBack;
     sf::RectangleShape m_barHealthFront;
-
-    // XP Bar
     sf::RectangleShape m_barXPBack;
     sf::RectangleShape m_barXPFront;
+
+    // --- TOOLTIP ---
+    sf::RectangleShape m_tooltipBox;
+    sf::Text m_tooltipText;
 
 private:
     sf::RenderWindow m_outsideWindow;
     sf::RenderWindow m_insideWindow;
-
     sf::Sprite m_outsideBackground;
     sf::Sprite m_insideBackground;
     sf::RectangleShape m_grassRect;

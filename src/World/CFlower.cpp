@@ -1,6 +1,7 @@
 #include "World/CFlower.hpp"
 #include "Graphics/CTextureManager.hpp"
 #include "Utils/CConstants.hpp"
+#include <string>
 
 CFlower::CFlower(sf::Vector2f pos)
     : CEntity(pos, EWindowType::OUTSIDE), 
@@ -15,7 +16,9 @@ CFlower::CFlower(sf::Vector2f pos)
     m_sprite.setPosition(m_position);
 }
 
-void CFlower::update(float dt) {
+void CFlower::update(float dt, const sf::Vector2u& windowSize) {
+    (void)windowSize; // CORRECTION : Silence warning
+
     if (!m_isAvailable) {
         m_regenTimer -= dt;
         if (m_regenTimer <= 0.f) {
@@ -42,5 +45,10 @@ int CFlower::collect() {
     return m_pollenValue;
 }
 
-sf::FloatRect CFlower::getBounds() const { return m_sprite.getGlobalBounds(); }
-sf::Vector2f CFlower::getPosition() const { return m_position; }
+sf::FloatRect CFlower::getBounds() const { 
+    return m_sprite.getGlobalBounds(); 
+}
+
+std::string CFlower::getStats() const {
+    return "FLEUR\nPollen: " + std::to_string(m_pollenValue);
+}

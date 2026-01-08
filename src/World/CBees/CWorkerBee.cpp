@@ -1,9 +1,11 @@
 #include "World/CBees/CWorkerBee.hpp"
 #include "World/CFlower.hpp"
 #include "Utils/CConstants.hpp"
+#include "Graphics/CTextureManager.hpp" // CORRECTION : Include ajouté ici !
 #include <cstdlib>
 #include <cmath>
 #include <iostream>
+#include <string>
 
 CWorkerBee::CWorkerBee(sf::Vector2f pos, EWindowType winType)
     : CBee(pos, winType, constants::WORKER_SPEED), 
@@ -40,7 +42,6 @@ void CWorkerBee::startDelivering() {
 
 void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
 {
-    // --- GESTION ETAT RECOLTE ---
     if (m_behavior == EWorkerBehavior::COLLECTING) {
         m_collectionTimer -= dt;
         if (m_collectionTimer <= 0) {
@@ -56,13 +57,12 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
     sf::Vector2f targetPos = m_position;
     bool hasTarget = false;
 
-    // --- DEFINITION CIBLE ---
     if (m_behavior == EWorkerBehavior::GOING_TO_FLOWER && m_targetFlower) {
         targetPos = m_targetFlower->getPosition();
         hasTarget = true;
     } 
     else if (m_behavior == EWorkerBehavior::RETURNING) {
-        targetPos = sf::Vector2f(-100.f, m_position.y); // Gauche
+        targetPos = sf::Vector2f(-100.f, m_position.y);
         hasTarget = true;
     }
     else if (m_behavior == EWorkerBehavior::DELIVERING) {
@@ -70,7 +70,6 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
         hasTarget = true;
     }
 
-    // --- MOUVEMENT ---
     sf::Vector2f movementDir(0.f, 0.f);
 
     if (hasTarget) {
@@ -81,7 +80,6 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
             movementDir = (diff / dist);
             m_position += movementDir * m_speed * dt;
         } else {
-            // Arrivée à destination
             if (m_behavior == EWorkerBehavior::GOING_TO_FLOWER) {
                 m_behavior = EWorkerBehavior::COLLECTING;
                 m_collectionTimer = m_collectionDuration;
@@ -91,16 +89,10 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
         }
     } 
     else {
-        // --- ANIMATION WANDER (Sinusoidale Haut/Bas) ---
         static float globalTime = 0.f;
         globalTime += dt;
         
-        // Mouvement Vertical (Oscillation)
-        // m_wanderSeed permet de désynchroniser les abeilles
         float waveY = std::sin(globalTime * 3.f + m_wanderSeed) * 0.5f; 
-        
-        // Mouvement Horizontal (Lent drift)
-        // On utilise cos pour le X pour faire des cercles/ovales aplatis
         float waveX = std::cos(globalTime * 1.f + m_wanderSeed) * 0.3f;
 
         m_position.x += waveX * m_speed * 0.5f * dt;
@@ -109,13 +101,10 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
         movementDir = sf::Vector2f(waveX, waveY);
     }
 
-    // --- ORIENTATION VISUELLE (FLIP) ---
-    // On ne touche JAMAIS à la rotation (setRotation(0)).
-    // On flip le scale X.
     if (movementDir.x < -0.1f) {
-        m_sprite.setScale(-1.f, 1.f); // Regarde à gauche
+        m_sprite.setScale(-1.f, 1.f);
     } else if (movementDir.x > 0.1f) {
-        m_sprite.setScale(1.f, 1.f);  // Regarde à droite
+        m_sprite.setScale(1.f, 1.f);
     }
     m_sprite.setRotation(0.f);
 
@@ -141,4 +130,11 @@ void CWorkerBee::resetPollen() {
 void CWorkerBee::levelUpStats(float factor) {
     m_speed *= (1.0f + factor); 
     m_capacity += 1; 
+}
+
+std::string CWorkerBee::getStats() const {
+    std::string state = (m_behavior == EWorkerBehavior::COLLECTING) ? "Recolte" : 
+                        (m_behavior == EWorkerBehavior::DELIVERING) ? "Livraison" : "Voyage";
+    
+    return "OUVRIERE\nPollen: " + std::to_string(m_pollenCollected) + "/" + std::to_string(m_capacity) + "\nEtat: " + state;
 }

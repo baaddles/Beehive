@@ -1,39 +1,33 @@
 #pragma once
-#include <SFML/Graphics.hpp>
-#include "../../Utils/CEnums.hpp"
-#include "../../Graphics/CTextureManager.hpp"
+#include "World/CEntity.hpp"
+#include "Utils/CEnums.hpp"
 
-class CBee
+class CBee : public CEntity
 {
 protected:
-    sf::Vector2f m_position;
-    sf::Sprite m_sprite;
-    EWindowType m_windowType;
     float m_speed;
-    sf::Vector2f m_homePosition;
+    sf::Vector2f m_homePosition; 
+    sf::Sprite m_sprite; 
+
+    void keepInsideWindow(const sf::Vector2u& windowSize);
 
 public:
-    CBee(sf::Vector2f pos, EWindowType win, float speed = 50.f);
+    CBee(sf::Vector2f pos, EWindowType winType, float speed);
     virtual ~CBee() = default;
 
-    virtual void update(float dt, const sf::Vector2u& windowSize) = 0;
-    virtual void draw(sf::RenderWindow& window) const;
+    // Overrides de CEntity
+    virtual void update(float dt, const sf::Vector2u& windowSize) override;
+    virtual void draw(sf::RenderWindow& window) const override;
+    virtual sf::FloatRect getBounds() const override;
+    
+    // Stats génériques pour le Hover
+    virtual std::string getStats() const override { return "Abeille"; }
 
-    sf::Vector2f getPosition() const;
-    void setPosition(const sf::Vector2f& pos);
-
-    void setWindowType(EWindowType newWindow);
-    EWindowType getWindowType() const;
-
-    void setHomePosition(const sf::Vector2f& home) { m_homePosition = home; }
-    sf::Vector2f getHomePosition() const { return m_homePosition; }
-    float getSpeed() const { return m_speed; }
-
-    // Utile pour les collisions avec les fleurs
-    sf::FloatRect getBounds() const;
-
+    // Méthode spécifique aux abeilles (Level Up)
     virtual void levelUpStats(float factor) = 0;
 
-protected:
-    void keepInsideWindow(const sf::Vector2u& windowSize);
+    // Getters / Setters spécifiques
+    void setHomePosition(sf::Vector2f pos) { m_homePosition = pos; }
+    sf::Vector2f getHomePosition() const { return m_homePosition; }
+    float getSpeed() const { return m_speed; }
 };
