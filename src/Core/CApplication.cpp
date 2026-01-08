@@ -3,6 +3,7 @@
 #include <iostream>
 #include <cmath>
 #include <sstream>
+#include <algorithm> // Pour std::min
 
 CApplication::CApplication()
     : m_hiveLevel(1),
@@ -25,17 +26,30 @@ CApplication::CApplication()
     m_grassRect.setFillColor(constants::GRASS_COLOR);
     m_grassRect.setPosition(0.f, 500.f - grassHeight);
 
-    // Initialisation
+    // Initialisation Fleurs
     for(int i = 0; i < constants::INITIAL_FLOWER_COUNT; ++i) {
         float x = 50.f + (std::rand() % 600);
         float y = (500.f - grassHeight) + (std::rand() % (int)(grassHeight - 40));
         m_flowers.push_back(std::make_unique<CFlower>(sf::Vector2f(x, y)));
     }
+
+    // Reine
     m_entities.push_back(std::make_unique<CQueenBee>(sf::Vector2f(75.f, 250.f)));
-    for(int i = 0; i < 5; ++i) m_entities.push_back(std::make_unique<CWorkerBee>(sf::Vector2f(100.f + (rand() % 400), 100.f + (rand() % 300)), EWindowType::BEEHIVE));
+
+    // Ouvrières initiales
+    for(int i = 0; i < 5; ++i) {
+        m_entities.push_back(std::make_unique<CWorkerBee>(
+            sf::Vector2f(100.f + (rand() % 400), 100.f + (rand() % 300)), EWindowType::BEEHIVE));
+    }
+
+    // Guerrières initiales (GRILLE)
     for(int i = 0; i < 5; ++i) {
         auto warrior = std::make_unique<CWarriorBee>(sf::Vector2f(350.f, 200.f), EWindowType::BEEHIVE);
-        warrior->setHomePosition(sf::Vector2f(450.f, 100.f + i * 80.f));
+        
+        float gridX = 450.f + (i / 5) * 50.f; 
+        float gridY = 100.f + (i % 5) * 60.f;
+
+        warrior->setHomePosition(sf::Vector2f(gridX, gridY));
         warrior->setPatrolPosition(warrior->getHomePosition());
         warrior->setPosition(warrior->getHomePosition());
         m_entities.push_back(std::move(warrior));
@@ -45,57 +59,71 @@ CApplication::CApplication()
 }
 
 void CApplication::initUI() {
-    if (!m_font.loadFromFile("arial.ttf")) {
-        std::cerr << "ERREUR FONT" << std::endl;
+    // Construction du chemin absolu via la macro CMake
+    // FONTS_PATH se termine déjà par un '/' dans ton CMakeLists.txt
+    std::string fontPath = std::string(FONTS_PATH) + "meatball.ttf";
+
+    if (!m_font.loadFromFile(fontPath)) {
+        std::cerr << "ERREUR FATALE : Impossible de charger la police : " << fontPath << std::endl;
+        std::cerr << "Verifiez que le dossier 'assets/fonts/' existe et contient 'arial.ttf'" << std::endl;
+        // Tu peux ajouter un fallback système ici si tu veux, mais c'est mieux de fixer l'asset.
     }
 
-    // Compteurs
+    // --- 1. Compteurs (Haut Gauche) ---
     m_txtCounters.setFont(m_font);
     m_txtCounters.setCharacterSize(16);
     m_txtCounters.setFillColor(sf::Color::White);
     m_txtCounters.setPosition(10.f, 10.f);
 
-    // -- BARRE VIE --
+    // --- 2. Barre de Vie (Bas Milieu) ---
+    // Fond
     m_barHealthBack.setSize(sf::Vector2f(300.f, 24.f));
     m_barHealthBack.setFillColor(sf::Color::Black);
     m_barHealthBack.setOutlineThickness(2.f);
     m_barHealthBack.setOutlineColor(sf::Color::White);
-    m_barHealthBack.setOrigin(150.f, 0.f);
+    m_barHealthBack.setOrigin(150.f, 0.f); // Origine au milieu horizontal
     m_barHealthBack.setPosition(350.f, 420.f);
 
+    // Devant (Vert/Rouge)
     m_barHealthFront.setSize(sf::Vector2f(300.f, 24.f));
     m_barHealthFront.setFillColor(sf::Color::Green);
     m_barHealthFront.setOrigin(150.f, 0.f);
     m_barHealthFront.setPosition(350.f, 420.f);
 
-    // Texte Vie (DANS la barre)
+    // Texte Vie
     m_txtHealthInfo.setFont(m_font);
     m_txtHealthInfo.setCharacterSize(14);
     m_txtHealthInfo.setFillColor(sf::Color::White);
     m_txtHealthInfo.setOutlineColor(sf::Color::Black);
     m_txtHealthInfo.setOutlineThickness(1.f);
+    // La position exacte est recalculée dans renderUI pour le centrage
 
-    // -- BARRE XP --
+    // --- 3. Barre XP (Sous la vie) ---
+    // Fond
     m_barXPBack.setSize(sf::Vector2f(300.f, 16.f));
     m_barXPBack.setFillColor(sf::Color(50, 50, 50));
-    m_barXPBack.setOrigin(0.f, 0.f);
-    m_barXPBack.setPosition(200.f, 455.f); 
+    m_barXPBack.setOrigin(0.f, 0.f); // Origine à gauche pour faciliter le calcul
+    m_barXPBack.setPosition(200.f, 455.f); // 350 - 150 = 200
 
+    // Devant (Bleu)
     m_barXPFront.setSize(sf::Vector2f(0.f, 16.f));
     m_barXPFront.setFillColor(sf::Color::Cyan);
     m_barXPFront.setOrigin(0.f, 0.f);
     m_barXPFront.setPosition(200.f, 455.f);
 
-    // Texte XP (DANS la barre)
+    // Texte XP
     m_txtLevelInfo.setFont(m_font);
     m_txtLevelInfo.setCharacterSize(12);
-    m_txtLevelInfo.setFillColor(sf::Color::Black); // Noir sur Cyan c'est lisible
-    
-    // Game Over
+    m_txtLevelInfo.setFillColor(sf::Color::Black);
+    // La position exacte est recalculée dans renderUI
+
+    // --- 4. Game Over ---
     m_txtGameOver.setFont(m_font);
     m_txtGameOver.setString("GAME OVER");
     m_txtGameOver.setCharacterSize(60);
     m_txtGameOver.setFillColor(sf::Color::Red);
+    
+    // Centrage du Game Over
     sf::FloatRect bounds = m_txtGameOver.getLocalBounds();
     m_txtGameOver.setOrigin(bounds.width/2.f, bounds.height/2.f);
     m_txtGameOver.setPosition(350.f, 250.f);
@@ -189,10 +217,8 @@ void CApplication::update(float dt) {
                         targetEnnemy->takeDamage(warrior->getForce());
                         warrior->resetAttackTimer();
 
-                        // --- RECUL FLUIDE ---
-                        // On pousse l'abeille loin en arrière (impulsion de vitesse)
                         sf::Vector2f dir = targetEnnemy->getPosition() - warrior->getPosition();
-                        warrior->applyKnockback(-dir, 300.f); // Force de 300 px/sec
+                        warrior->applyKnockback(-dir, 120.f); // RECUL REDUIT (120)
                     }
                 }
                 else if (currentWin == EWindowType::BEEHIVE) {
@@ -225,7 +251,6 @@ void CApplication::renderUI(sf::RenderWindow& window) {
         return;
     }
 
-    // 1. Mise à jour Données UI
     int nbW = 0, nbWar = 0;
     for(auto& e : m_entities) {
         if(dynamic_cast<CWorkerBee*>(e.get())) nbW++;
@@ -235,7 +260,6 @@ void CApplication::renderUI(sf::RenderWindow& window) {
     ss << "Workers: " << nbW << "\nWarriors: " << nbWar;
     m_txtCounters.setString(ss.str());
 
-    // Barre Vie
     float hpRatio = (float)m_hiveHealth / (float)m_hiveMaxHealth;
     if (hpRatio < 0.f) hpRatio = 0.f;
     m_barHealthFront.setSize(sf::Vector2f(300.f * hpRatio, 24.f));
@@ -245,37 +269,31 @@ void CApplication::renderUI(sf::RenderWindow& window) {
     else if (hpRatio > 0.10f) m_barHealthFront.setFillColor(sf::Color(255, 165, 0));
     else m_barHealthFront.setFillColor(sf::Color::Red);
 
-    // Texte Vie (HP: 80/100)
     std::stringstream ssHp;
     ssHp << "HP: " << m_hiveHealth << " / " << m_hiveMaxHealth;
     m_txtHealthInfo.setString(ssHp.str());
-    // Centrer le texte dans la barre
     sf::FloatRect hpRect = m_txtHealthInfo.getLocalBounds();
     m_txtHealthInfo.setOrigin(hpRect.left + hpRect.width/2.0f, hpRect.top + hpRect.height/2.0f);
-    m_txtHealthInfo.setPosition(350.f, 420.f + 12.f); // Milieu barre (420 + demi hauteur)
+    m_txtHealthInfo.setPosition(350.f, 420.f + 12.f); 
 
-    // Barre XP
     float xpRatio = (float)m_currentPollen / (float)m_pollenForNextLevel;
     if (xpRatio > 1.f) xpRatio = 1.f;
     m_barXPFront.setSize(sf::Vector2f(300.f * xpRatio, 16.f));
 
-    // Texte XP (Lvl 2 - 10/50)
     std::stringstream ssLvl;
     ssLvl << "Lvl " << m_hiveLevel << " - " << m_currentPollen << " / " << m_pollenForNextLevel;
     m_txtLevelInfo.setString(ssLvl.str());
-    // Centrer le texte
     sf::FloatRect xpRect = m_txtLevelInfo.getLocalBounds();
     m_txtLevelInfo.setOrigin(xpRect.left + xpRect.width/2.0f, xpRect.top + xpRect.height/2.0f);
-    m_txtLevelInfo.setPosition(350.f, 455.f + 8.f); // Milieu barre (455 + demi hauteur)
+    m_txtLevelInfo.setPosition(350.f, 455.f + 8.f); 
 
-    // 2. Dessin
     window.draw(m_barHealthBack);
     window.draw(m_barHealthFront);
-    window.draw(m_txtHealthInfo); // Texte PAR DESSUS la barre
+    window.draw(m_txtHealthInfo);
 
     window.draw(m_barXPBack);
     window.draw(m_barXPFront);
-    window.draw(m_txtLevelInfo); // Texte PAR DESSUS la barre
+    window.draw(m_txtLevelInfo); 
 
     window.draw(m_txtCounters);
 }
@@ -302,24 +320,39 @@ void CApplication::render() {
 void CApplication::addPollenToHive(int amount) {
     if (amount <= 0) return;
     m_currentPollen += amount;
+    
+    // --- SOIN FIXE ---
     if (m_hiveHealth < m_hiveMaxHealth) {
-        m_hiveHealth += amount; 
+        m_hiveHealth += 2; // +2 HP seulement
         if (m_hiveHealth > m_hiveMaxHealth) m_hiveHealth = m_hiveMaxHealth;
     }
+    
     if (m_currentPollen >= m_pollenForNextLevel) performLevelUp();
 }
 
 void CApplication::spawnWave() {
     m_waveCount++;
+    std::cout << "!!! VAGUE " << m_waveCount << " !!!" << std::endl;
+
     float multiplier = 1.0f + (m_waveCount * 0.2f);
-    int baseHP = 50; int baseForce = 10;
+    
+    // --- STATS EQUILIBRÉES (RALENTIES MAIS TANKY) ---
+    // PV : 250 (Moins que Hard Mode 350, mais OK vu qu'ils sont lents)
+    int baseHP = 250; 
     int finalHP = static_cast<int>(baseHP * multiplier);
+    
+    // Force : 15 (Mais augmente avec les vagues)
+    int baseForce = 15; 
     int finalForce = static_cast<int>(baseForce * multiplier);
+
+    // Vitesse : 35 (Slower than 50, Faster than 23)
+    float baseSpeed = 35.0f;
+    float finalSpeed = baseSpeed * (1.0f + (m_waveCount * 0.05f));
 
     for(int i = 0; i < 3; ++i) {
         float startY = 100.f + (std::rand() % 300);
         float startX = 700.f + (i * 60.f); 
-        m_intruders.push_back(std::make_unique<CIntruder>(sf::Vector2f(startX, startY), finalHP, finalForce));
+        m_intruders.push_back(std::make_unique<CIntruder>(sf::Vector2f(startX, startY), finalHP, finalForce, finalSpeed));
     }
 }
 
@@ -327,7 +360,17 @@ void CApplication::performLevelUp() {
     m_hiveLevel++;
     m_currentPollen = 0;
     m_pollenForNextLevel = static_cast<int>(m_pollenForNextLevel * 1.5f);
-    m_hiveMaxHealth += 20; m_hiveHealth = m_hiveMaxHealth; 
+    
+    int maxHealthGain = 20;
+    m_hiveMaxHealth += maxHealthGain;
+    
+    // --- CORRECTION VISUELLE ET SOIN 10% ---
+    // 1. On donne les PV correspondant à l'augmentation du Max pour ne pas "perdre" visuellement
+    m_hiveHealth += maxHealthGain;
+
+    // 2. On ajoute le soin de 10% (Bonus de Level Up)
+    int healAmount = static_cast<int>(m_hiveMaxHealth * 0.10f); // 10%
+    m_hiveHealth = std::min(m_hiveHealth + healAmount, m_hiveMaxHealth);
 
     int nbWorkers = 0, nbWarriors = 0;
     for (auto& entity : m_entities) {
@@ -338,12 +381,22 @@ void CApplication::performLevelUp() {
             else if (dynamic_cast<CWarriorBee*>(bee)) nbWarriors++;
         }
     }
-    if (nbWarriors > nbWorkers) m_entities.push_back(std::make_unique<CWorkerBee>(sf::Vector2f(350.f, 250.f), EWindowType::BEEHIVE));
-    else {
+
+    if (nbWarriors > nbWorkers) {
+        m_entities.push_back(std::make_unique<CWorkerBee>(sf::Vector2f(350.f, 250.f), EWindowType::BEEHIVE));
+        std::cout << "+1 Ouvriere" << std::endl;
+    } else {
         auto newWarrior = std::make_unique<CWarriorBee>(sf::Vector2f(350.f, 250.f), EWindowType::BEEHIVE);
-        newWarrior->setHomePosition(sf::Vector2f(450.f, 100.f + (nbWarriors * 40.f)));
+        
+        float gridX = 450.f + (nbWarriors / 5) * 50.f;
+        float gridY = 100.f + (nbWarriors % 5) * 60.f;
+
+        newWarrior->setHomePosition(sf::Vector2f(gridX, gridY));
         newWarrior->setPatrolPosition(newWarrior->getHomePosition());
+        
         m_entities.push_back(std::move(newWarrior));
+        std::cout << "+1 Guerriere" << std::endl;
     }
+
     spawnWave();
 }

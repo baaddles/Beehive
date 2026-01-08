@@ -7,11 +7,10 @@ private:
     sf::Sprite m_sprite;
     int m_life; // Vie de l'intrus
     int m_force; // Dégats envers les abeilles
-    int m_attackFrequency; // Fréquence d'attaque
     float m_speed;
 
 public:
-    CIntruder(sf::Vector2f pos, int hp, int force);
+    CIntruder(sf::Vector2f pos, int hp, int force, float speed);
 
     void update(float dt) override;
     void draw(sf::RenderWindow& window) const override;

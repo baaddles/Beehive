@@ -124,7 +124,7 @@ void CWorkerBee::update(float dt, const sf::Vector2u& windowSize)
 }
 
 void CWorkerBee::draw(sf::RenderWindow& window) const {
-    if (m_pollenCollected > 0) const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::Yellow);
+    if (isFull()) const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::Yellow);
     else const_cast<sf::Sprite&>(m_sprite).setColor(sf::Color::White);
     window.draw(m_sprite);
 }

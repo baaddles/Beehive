@@ -13,9 +13,8 @@ file(GLOB_RECURSE PROJECT_SOURCES src/*.cpp main.cpp)
 
 add_executable(Beehive ${PROJECT_SOURCES})
 
-# --- NOUVEAU : DEFINITION DU CHEMIN DES ASSETS ---
-# On définit une variable C++ qui contient le chemin vers le dossier assets source
 target_compile_definitions(Beehive PRIVATE ASSETS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/textures/")
+target_compile_definitions(Beehive PRIVATE FONTS_PATH="${CMAKE_CURRENT_SOURCE_DIR}/assets/fonts/")
 
 target_include_directories(Beehive PRIVATE include)
 target_link_libraries(Beehive sfml-graphics sfml-window sfml-system)
